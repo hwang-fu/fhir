@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+members = ["crates/core", "crates/server", "crates/pg-ext"]
+
+# Shared workspace metadata
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+authors = ["Junzhe Wang junzhe.wang2002@gmail.com"]
+license = "MIT"
+repository = "https://github.com/hwang-fu/fhir"
+
+[workspace.dependencies]
