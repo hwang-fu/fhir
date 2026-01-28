@@ -4,5 +4,5 @@
 //! including Patient, Bundle, OperationOutcome, and CapabilityStatement.
 
 pub fn hello_core() -> &'static str {
-  "Hello from fhir-core"
+    "Hello from fhir-core"
 }

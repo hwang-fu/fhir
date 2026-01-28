@@ -5,5 +5,5 @@
 
 /// Placeholder - will be replaced with PGRX setup later
 pub fn hello_ext() -> &'static str {
-  "Hello from fhir-pg-ext"
+    "Hello from fhir-pg-ext"
 }
