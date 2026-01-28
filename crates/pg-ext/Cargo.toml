@@ -1,0 +1,11 @@
+[package]
+name = "fhir-pg-ext"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
