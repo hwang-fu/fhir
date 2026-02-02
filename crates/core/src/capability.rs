@@ -33,3 +33,10 @@ impl Default for CapabilityStatement {
         Self::new()
     }
 }
+
+/// REST capability declaration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CapabilityRest {
+    pub mode: String,
+    pub resource: Vec<CapabilityResource>,
+}
