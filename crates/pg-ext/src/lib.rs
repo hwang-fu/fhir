@@ -5,6 +5,8 @@
 
 use pgrx::prelude::*;
 
+mod storage;
+
 // Register this crate as a PostgreSQL extension
 pgrx::pg_module_magic!();
 
