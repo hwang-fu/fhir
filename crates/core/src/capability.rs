@@ -12,3 +12,18 @@ pub struct CapabilityStatement {
     pub format: Vec<String>,
     pub rest: Vec<CapabilityRest>,
 }
+
+impl CapabilityStatement {
+    /// Create a default capability statement for this server
+    pub fn new() -> Self {
+        Self {
+            resource_type: "CapabilityStatement".to_string(),
+            status: "active".to_string(),
+            date: "2026-02-02".to_string(),
+            kind: "instance".to_string(),
+            fhir_version: "4.3.0".to_string(), // R4B
+            format: vec!["json".to_string()],
+            rest: vec![CapabilityRest::default()],
+        }
+    }
+}
