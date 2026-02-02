@@ -1,3 +1,5 @@
+//! API Key authentication middleware
+
 use axum::{
     Json,
     body::Body,

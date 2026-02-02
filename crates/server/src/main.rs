@@ -5,12 +5,15 @@
 mod config;
 mod db;
 mod error;
+mod middleware;
 mod routes;
 
-use axum::{Router, routing::get};
+use axum::{Extension, Router, middleware as axum_mw, routing::get};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+use middleware::ApiKeyAuth;
 
 #[tokio::main]
 async fn main() {
@@ -30,10 +33,29 @@ async fn main() {
         .await
         .expect("Failed to create database pool");
 
+    // Create auth state
+    let auth = ApiKeyAuth::new(config.api_key.clone());
+
+    // Log whether auth is enabled
+    if config.api_key.is_some() {
+        tracing::info!("API key authentication enabled");
+    } else {
+        tracing::warn!("API key authentication disabled (no API_KEY env var)");
+    }
+
+    // Protected routes (require auth)
+    let protected_routes = Router::new()
+        .nest("/fhir", routes::fhir_routes())
+        .layer(axum_mw::from_fn(middleware::auth::auth_middleware))
+        .layer(Extension(auth));
+
+    // Public routes (no auth required)
+    let public_routes = Router::new().route("/metadata", get(routes::metadata::get));
+
     // Build application
     let app = Router::new()
-        .route("/metadata", get(routes::metadata::get))
-        .nest("/fhir", routes::fhir_routes())
+        .merge(public_routes)
+        .merge(protected_routes)
         .with_state(pool)
         .layer(TraceLayer::new_for_http());
 
