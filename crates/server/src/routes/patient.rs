@@ -28,6 +28,37 @@ pub struct SearchParams {
     pub sort: Option<String>,
 }
 
+impl SearchParams {
+    /// Convert to JSON for the PGRX search function
+    fn to_json(&self) -> JsonValue {
+        let mut map = serde_json::Map::new();
+
+        if let Some(ref name) = self.name {
+            map.insert("name".to_string(), JsonValue::String(name.clone()));
+        }
+        if let Some(ref gender) = self.gender {
+            map.insert("gender".to_string(), JsonValue::String(gender.clone()));
+        }
+        if let Some(ref birthdate) = self.birthdate {
+            map.insert(
+                "birthdate".to_string(),
+                JsonValue::String(birthdate.clone()),
+            );
+        }
+        if let Some(count) = self.count {
+            map.insert("_count".to_string(), JsonValue::Number(count.into()));
+        }
+        if let Some(offset) = self.offset {
+            map.insert("_offset".to_string(), JsonValue::Number(offset.into()));
+        }
+        if let Some(ref sort) = self.sort {
+            map.insert("_sort".to_string(), JsonValue::String(sort.clone()));
+        }
+
+        JsonValue::Object(map)
+    }
+}
+
 /// POST /fhir/Patient - Create a new patient
 pub async fn create(
     State(pool): State<Pool>,
