@@ -1,3 +1,4 @@
+//! FHIR resource search functionality
 
 use pgrx::prelude::*;
 
@@ -43,8 +44,7 @@ fn fhir_search(
     // Name filter (substring match on family or given name)
     if let Some(name) = params.get("name").and_then(|v| v.as_str()) {
         where_clauses.push(format!(
-            "(data->'name'->0->>'family' ILIKE '%{}%' OR data->'name'->0->>'given'->0
-  ILIKE '%{}%')",
+            "(data->'name'->0->>'family' ILIKE '%{}%' OR data->'name'->0->'given'->>0 ILIKE '%{}%')",
             escape_like(name),
             escape_like(name)
         ));
