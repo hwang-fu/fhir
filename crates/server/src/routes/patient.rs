@@ -1,15 +1,64 @@
+//! Patient resource HTTP handlers
+
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::{HeaderMap, StatusCode, header},
     response::IntoResponse,
 };
 use deadpool_postgres::Pool;
+use fhir_core::{Bundle, BundleEntry};
+use serde::Deserialize;
 use serde_json::Value as JsonValue;
 use uuid::Uuid;
 
 use crate::db::PatientRepository;
 use crate::error::AppError;
+
+/// Query parameters for patient search
+#[derive(Debug, Deserialize, Default)]
+pub struct SearchParams {
+    pub name: Option<String>,
+    pub gender: Option<String>,
+    pub birthdate: Option<String>,
+    #[serde(rename = "_count")]
+    pub count: Option<i64>,
+    #[serde(rename = "_offset")]
+    pub offset: Option<i64>,
+    #[serde(rename = "_sort")]
+    pub sort: Option<String>,
+}
+
+impl SearchParams {
+    /// Convert to JSON for the PGRX search function
+    fn to_json(&self) -> JsonValue {
+        let mut map = serde_json::Map::new();
+
+        if let Some(ref name) = self.name {
+            map.insert("name".to_string(), JsonValue::String(name.clone()));
+        }
+        if let Some(ref gender) = self.gender {
+            map.insert("gender".to_string(), JsonValue::String(gender.clone()));
+        }
+        if let Some(ref birthdate) = self.birthdate {
+            map.insert(
+                "birthdate".to_string(),
+                JsonValue::String(birthdate.clone()),
+            );
+        }
+        if let Some(count) = self.count {
+            map.insert("_count".to_string(), JsonValue::Number(count.into()));
+        }
+        if let Some(offset) = self.offset {
+            map.insert("_offset".to_string(), JsonValue::Number(offset.into()));
+        }
+        if let Some(ref sort) = self.sort {
+            map.insert("_sort".to_string(), JsonValue::String(sort.clone()));
+        }
+
+        JsonValue::Object(map)
+    }
+}
 
 /// POST /fhir/Patient - Create a new patient
 pub async fn create(
@@ -24,7 +73,7 @@ pub async fn create(
         header::LOCATION,
         format!("/fhir/Patient/{}", id).parse().unwrap(),
     );
-    headers.insert("ETag", format!("W/\"1\"").parse().unwrap());
+    headers.insert("ETag", "W/\"1\"".parse().unwrap());
 
     Ok((StatusCode::CREATED, headers))
 }
@@ -86,16 +135,28 @@ pub async fn delete(
     }
 }
 
-/// GET /fhir/Patient - Search patients (placeholder)
-pub async fn search(State(_pool): State<Pool>) -> Result<impl IntoResponse, AppError> {
-    // TODO: Implement search in Phase 6
-    Ok((
-        StatusCode::OK,
-        Json(serde_json::json!({
-            "resourceType": "Bundle",
-            "type": "searchset",
-            "total": 0,
-            "entry": []
-        })),
-    ))
+/// GET /fhir/Patient - Search patients
+pub async fn search(
+    State(pool): State<Pool>,
+    Query(params): Query<SearchParams>,
+) -> Result<impl IntoResponse, AppError> {
+    let repo = PatientRepository::new(pool);
+    let json_params = params.to_json();
+
+    // Get search results
+    let results = repo.search(json_params.clone()).await?;
+
+    // Get total count for pagination
+    let total = repo.count(json_params).await? as u32;
+
+    // Build bundle entries
+    let entries: Vec<BundleEntry> = results
+        .into_iter()
+        .map(|(id, data)| BundleEntry::new(Some(format!("/fhir/Patient/{}", id)), data))
+        .collect();
+
+    // Create bundle response
+    let bundle = Bundle::searchset(total, entries);
+
+    Ok(Json(bundle))
 }

@@ -63,4 +63,39 @@ impl PatientRepository {
             .await?;
         Ok(row.get(0))
     }
+
+    /// Search for patients
+    pub async fn search(&self, params: JsonValue) -> Result<Vec<(Uuid, JsonValue)>, AppError> {
+        let client = self.pool.get().await?;
+        let rows = client
+            .query(
+                "SELECT id, data FROM fhir_search('Patient', $1::jsonb)",
+                &[&params],
+            )
+            .await?;
+
+        let results = rows.iter().map(|row| (row.get(0), row.get(1))).collect();
+
+        Ok(results)
+    }
+
+    /// Count total patients matching search criteria (for pagination)
+    pub async fn count(&self, params: JsonValue) -> Result<i64, AppError> {
+        let client = self.pool.get().await?;
+        // Remove pagination params for counting
+        let mut count_params = params.clone();
+        if let Some(obj) = count_params.as_object_mut() {
+            obj.remove("_count");
+            obj.remove("_offset");
+        }
+
+        let row = client
+            .query_one(
+                "SELECT COUNT(*) FROM fhir_search('Patient', $1::jsonb)",
+                &[&count_params],
+            )
+            .await?;
+
+        Ok(row.get(0))
+    }
 }
