@@ -134,16 +134,28 @@ pub async fn delete(
     }
 }
 
-/// GET /fhir/Patient - Search patients (placeholder)
-pub async fn search(State(_pool): State<Pool>) -> Result<impl IntoResponse, AppError> {
-    // TODO: Implement search in Phase 6
-    Ok((
-        StatusCode::OK,
-        Json(serde_json::json!({
-            "resourceType": "Bundle",
-            "type": "searchset",
-            "total": 0,
-            "entry": []
-        })),
-    ))
+/// GET /fhir/Patient - Search patients
+pub async fn search(
+    State(pool): State<Pool>,
+    Query(params): Query<SearchParams>,
+) -> Result<impl IntoResponse, AppError> {
+    let repo = PatientRepository::new(pool);
+    let json_params = params.to_json();
+
+    // Get search results
+    let results = repo.search(json_params.clone()).await?;
+
+    // Get total count for pagination
+    let total = repo.count(json_params).await? as u32;
+
+    // Build bundle entries
+    let entries: Vec<BundleEntry> = results
+        .into_iter()
+        .map(|(id, data)| BundleEntry::new(Some(format!("/fhir/Patient/{}", id)), data))
+        .collect();
+
+    // Create bundle response
+    let bundle = Bundle::searchset(total, entries);
+
+    Ok(Json(bundle))
 }
