@@ -49,3 +49,15 @@ impl Default for CapabilityRest {
         }
     }
 }
+
+/// Resource-level capabilities
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CapabilityResource {
+    #[serde(rename = "type")]
+    pub resource_type: String,
+    pub interaction: Vec<CapabilityInteraction>,
+    pub versioning: String,
+    pub read_history: bool,
+    pub search_param: Vec<CapabilitySearchParam>,
+}
