@@ -98,4 +98,19 @@ impl PatientRepository {
 
         Ok(row.get(0))
     }
+
+    /// Get all versions of a patient (history)
+    pub async fn history(&self, id: Uuid) -> Result<Vec<(i32, JsonValue)>, AppError> {
+        let client = self.pool.get().await?;
+        let rows = client
+            .query(
+                "SELECT version, data FROM fhir_history('Patient', $1::uuid)",
+                &[&id],
+            )
+            .await?;
+
+        let results = rows.iter().map(|row| (row.get(0), row.get(1))).collect();
+
+        Ok(results)
+    }
 }
