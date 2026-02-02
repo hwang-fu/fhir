@@ -1,5 +1,6 @@
 //! HTTP route definitions
 
+pub mod metadata;
 mod patient;
 
 use axum::{Router, routing::get};

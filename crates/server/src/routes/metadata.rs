@@ -1,3 +1,4 @@
+//! Metadata endpoint handler
 
 use axum::Json;
 use fhir_core::CapabilityStatement;

@@ -7,7 +7,7 @@ mod db;
 mod error;
 mod routes;
 
-use axum::Router;
+use axum::{Router, routing::get};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -32,6 +32,7 @@ async fn main() {
 
     // Build application
     let app = Router::new()
+        .route("/metadata", get(routes::metadata::get))
         .nest("/fhir", routes::fhir_routes())
         .with_state(pool)
         .layer(TraceLayer::new_for_http());

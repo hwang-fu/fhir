@@ -1,3 +1,5 @@
+//! FHIR CapabilityStatement resource
+
 use serde::{Deserialize, Serialize};
 
 /// FHIR CapabilityStatement resource (simplified)
