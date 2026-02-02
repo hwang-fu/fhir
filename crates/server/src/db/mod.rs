@@ -1,3 +1,5 @@
+//! Database connection and operations
+
 mod repository;
 
 pub use repository::PatientRepository;

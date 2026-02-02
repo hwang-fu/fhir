@@ -1,3 +1,5 @@
+//! Application error handling
+
 use axum::{
     Json,
     http::StatusCode,
@@ -27,5 +29,17 @@ impl IntoResponse for AppError {
         };
 
         (status, Json(outcome)).into_response()
+    }
+}
+
+impl From<deadpool_postgres::PoolError> for AppError {
+    fn from(err: deadpool_postgres::PoolError) -> Self {
+        AppError::Internal(format!("Database pool error: {}", err))
+    }
+}
+
+impl From<tokio_postgres::Error> for AppError {
+    fn from(err: tokio_postgres::Error) -> Self {
+        AppError::Internal(format!("Database error: {}", err))
     }
 }

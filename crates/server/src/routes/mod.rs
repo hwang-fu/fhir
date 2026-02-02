@@ -1,6 +1,8 @@
+//! HTTP route definitions
+
 mod patient;
 
-use axum::{routing::get, Router};
+use axum::{Router, routing::get};
 use deadpool_postgres::Pool;
 
 /// Build FHIR routes

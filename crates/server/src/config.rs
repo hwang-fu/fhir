@@ -1,3 +1,5 @@
+//! Server configuration
+
 /// Server configuration loaded from environment variables
 pub struct Config {
     pub database_url: String,

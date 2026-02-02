@@ -1,3 +1,5 @@
+//! Patient repository for database operations
+
 use deadpool_postgres::Pool;
 use serde_json::Value as JsonValue;
 use uuid::Uuid;
