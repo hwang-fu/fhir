@@ -191,6 +191,7 @@ pub async fn history(
     Ok(Json(bundle))
 }
 
+/// POST /fhir/Patient/$validate - Validate a patient without storing
 pub async fn validate(Json(body): Json<JsonValue>) -> impl IntoResponse {
     // Check resourceType is present and correct
     let resource_type = body.get("resourceType").and_then(|v| v.as_str());
