@@ -83,3 +83,13 @@ pub struct BundleEntry {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resource: Option<serde_json::Value>,
 }
+
+impl BundleEntry {
+    /// Create a new bundle entry
+    pub fn new(full_url: Option<String>, resource: serde_json::Value) -> Self {
+        Self {
+            full_url,
+            resource: Some(resource),
+        }
+    }
+}
