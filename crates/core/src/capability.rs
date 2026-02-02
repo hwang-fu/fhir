@@ -27,3 +27,9 @@ impl CapabilityStatement {
         }
     }
 }
+
+impl Default for CapabilityStatement {
+    fn default() -> Self {
+        Self::new()
+    }
+}
