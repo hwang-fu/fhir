@@ -16,3 +16,8 @@ fn escape_like(s: &str) -> String {
         .replace('_', "\\_")
         .replace('\'', "''")
 }
+
+/// Escape single quotes for SQL strings
+fn escape_sql(s: &str) -> String {
+    s.replace('\'', "''")
+}
