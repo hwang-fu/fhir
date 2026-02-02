@@ -100,3 +100,11 @@ impl CapabilityInteraction {
         }
     }
 }
+
+/// Search parameter definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CapabilitySearchParam {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub param_type: String,
+}
