@@ -61,3 +61,28 @@ pub struct CapabilityResource {
     pub read_history: bool,
     pub search_param: Vec<CapabilitySearchParam>,
 }
+
+impl CapabilityResource {
+    /// Create Patient resource capabilities
+    pub fn patient() -> Self {
+        Self {
+            resource_type: "Patient".to_string(),
+            interaction: vec![
+                CapabilityInteraction::new("read"),
+                CapabilityInteraction::new("vread"),
+                CapabilityInteraction::new("update"),
+                CapabilityInteraction::new("delete"),
+                CapabilityInteraction::new("history-instance"),
+                CapabilityInteraction::new("create"),
+                CapabilityInteraction::new("search-type"),
+            ],
+            versioning: "versioned".to_string(),
+            read_history: true,
+            search_param: vec![
+                CapabilitySearchParam::new("name", "string"),
+                CapabilitySearchParam::new("gender", "token"),
+                CapabilitySearchParam::new("birthdate", "date"),
+            ],
+        }
+    }
+}
