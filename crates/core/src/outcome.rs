@@ -44,3 +44,13 @@ pub enum IssueType {
     Throttled,
     Informational,
 }
+
+/// FHIR OperationOutcome resource
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OperationOutcome {
+    pub resource_type: String,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub issue: Vec<OperationOutcomeIssue>,
+}
