@@ -1,8 +1,12 @@
 //! HTTP route definitions
 
+pub mod metadata;
 mod patient;
 
-use axum::{Router, routing::get};
+use axum::{
+    Router,
+    routing::{get, post},
+};
 use deadpool_postgres::Pool;
 
 /// Build FHIR routes
@@ -15,4 +19,6 @@ pub fn fhir_routes() -> Router<Pool> {
                 .put(patient::update)
                 .delete(patient::delete),
         )
+        .route("/Patient/{id}/_history", get(patient::history))
+        .route("/Patient/$validate", post(patient::validate))
 }
