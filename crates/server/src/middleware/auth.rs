@@ -46,3 +46,20 @@ impl ApiKeyAuth {
         }
     }
 }
+
+/// Middleware function for API key authentication
+pub async fn auth_middleware(headers: HeaderMap, request: Request<Body>, next: Next) -> Response {
+    // Get auth state from request extensions
+    let auth = request
+        .extensions()
+        .get::<ApiKeyAuth>()
+        .cloned()
+        .unwrap_or_else(|| ApiKeyAuth::new(None));
+
+    // Validate API key
+    if let Err(response) = auth.validate(&headers) {
+        return response;
+    }
+
+    next.run(request).await
+}
