@@ -1,4 +1,3 @@
-
 use axum::{
     Json,
     extract::{Path, State},
@@ -28,4 +27,28 @@ pub async fn create(
     headers.insert("ETag", format!("W/\"1\"").parse().unwrap());
 
     Ok((StatusCode::CREATED, headers))
+}
+
+/// GET /fhir/Patient/{id} - Read a patient
+pub async fn read(
+    State(pool): State<Pool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, AppError> {
+    let repo = PatientRepository::new(pool);
+
+    match repo.get(id).await? {
+        Some(data) => {
+            let mut headers = HeaderMap::new();
+            // Extract version from meta if available, default to 1
+            let version = data
+                .get("meta")
+                .and_then(|m| m.get("versionId"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("1");
+            headers.insert("ETag", format!("W/\"{}\"", version).parse().unwrap());
+
+            Ok((StatusCode::OK, headers, Json(data)))
+        }
+        None => Err(AppError::NotFound(format!("Patient/{} not found", id))),
+    }
 }
