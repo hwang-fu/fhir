@@ -86,3 +86,9 @@ impl CapabilityResource {
         }
     }
 }
+
+/// Supported interaction
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CapabilityInteraction {
+    pub code: String,
+}
