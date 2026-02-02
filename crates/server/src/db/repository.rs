@@ -52,4 +52,13 @@ impl PatientRepository {
             None => Ok(None),
         }
     }
+
+    /// Delete a patient
+    pub async fn delete(&self, id: Uuid) -> Result<bool, AppError> {
+        let client = self.pool.get().await?;
+        let row = client
+            .query_one("SELECT fhir_delete('Patient', $1::uuid)", &[&id])
+            .await?;
+        Ok(row.get(0))
+    }
 }
