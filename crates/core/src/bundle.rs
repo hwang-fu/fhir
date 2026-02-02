@@ -35,6 +35,17 @@ pub struct Bundle {
 }
 
 impl Bundle {
+    /// Create a new history bundle
+    pub fn history(entries: Vec<BundleEntry>) -> Self {
+        Self {
+            resource_type: "Bundle".to_string(),
+            bundle_type: BundleType::History,
+            total: Some(entries.len() as u32),
+            link: Vec::new(),
+            entry: entries,
+        }
+    }
+
     /// Add a pagination link
     pub fn add_link(&mut self, relation: &str, url: &str) {
         self.link.push(BundleLink {
