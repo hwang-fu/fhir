@@ -19,3 +19,16 @@ pub enum FhirError {
     #[error("Internal error: {0}")]
     Internal(String),
 }
+
+impl FhirError {
+    /// Convert to OperationOutcome for FHIR-compliant error responses
+    pub fn to_outcome(&self) -> OperationOutcome {
+        match self {
+            FhirError::NotFound(msg) => OperationOutcome::not_found(msg),
+            FhirError::Invalid(msg) => OperationOutcome::invalid(msg),
+            FhirError::Conflict(msg) => OperationOutcome::conflict(msg),
+            FhirError::Database(msg) => OperationOutcome::error(IssueType::Exception, msg),
+            FhirError::Internal(msg) => OperationOutcome::error(IssueType::Exception, msg),
+        }
+    }
+}
