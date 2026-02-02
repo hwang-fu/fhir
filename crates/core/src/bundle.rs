@@ -33,3 +33,13 @@ pub struct Bundle {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub entry: Vec<BundleEntry>,
 }
+
+impl Bundle {
+    /// Add a pagination link
+    pub fn add_link(&mut self, relation: &str, url: &str) {
+        self.link.push(BundleLink {
+            relation: relation.to_string(),
+            url: url.to_string(),
+        });
+    }
+}
