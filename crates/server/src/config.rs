@@ -4,6 +4,7 @@
 pub struct Config {
     pub database_url: String,
     pub bind_address: String,
+    pub api_key: Option<String>,
 }
 
 impl Config {
@@ -13,6 +14,7 @@ impl Config {
             database_url: std::env::var("DATABASE_URL")
                 .unwrap_or_else(|_| "host=localhost user=postgres dbname=fhir".into()),
             bind_address: std::env::var("BIND_ADDRESS").unwrap_or_else(|_| "0.0.0.0:8080".into()),
+            api_key: std::env::var("API_KEY").ok(),
         }
     }
 }
