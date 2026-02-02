@@ -85,3 +85,17 @@ pub async fn delete(
         Err(AppError::NotFound(format!("Patient/{} not found", id)))
     }
 }
+
+/// GET /fhir/Patient - Search patients (placeholder)
+pub async fn search(State(_pool): State<Pool>) -> Result<impl IntoResponse, AppError> {
+    // TODO: Implement search in Phase 6
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "resourceType": "Bundle",
+            "type": "searchset",
+            "total": 0,
+            "entry": []
+        })),
+    ))
+}
