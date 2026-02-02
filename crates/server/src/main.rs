@@ -37,6 +37,10 @@ async fn main() {
     // Create auth state
     let auth = ApiKeyAuth::new(config.api_key.clone());
 
+    // Create rate limiter
+    let rate_limiter = middleware::create_rate_limiter(config.rate_limit_rps);
+    tracing::info!("Rate limiting: {} requests/second", config.rate_limit_rps);
+
     // Log whether auth is enabled
     if config.api_key.is_some() {
         tracing::info!("API key authentication enabled");
@@ -48,7 +52,9 @@ async fn main() {
     let protected_routes = Router::new()
         .nest("/fhir", routes::fhir_routes())
         .layer(axum_mw::from_fn(middleware::auth::auth_middleware))
-        .layer(Extension(auth));
+        .layer(Extension(auth))
+        .layer(axum_mw::from_fn(middleware::rate_limit_middleware))
+        .layer(Extension(rate_limiter));
 
     // Public routes (no auth required)
     let public_routes = Router::new().route("/metadata", get(routes::metadata::get));

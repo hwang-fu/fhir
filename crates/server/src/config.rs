@@ -6,6 +6,7 @@ pub struct Config {
     pub bind_address: String,
     pub api_key: Option<String>,
     pub cors_origins: Vec<String>,
+    pub rate_limit_rps: u32,
 }
 
 impl Config {
@@ -22,11 +23,17 @@ impl Config {
 
         let api_key = std::env::var("API_KEY").ok();
 
+        let rate_limit_rps = std::env::var("RATE_LIMIT_RPS")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(100);
+
         Self {
             database_url,
             bind_address,
             api_key,
             cors_origins,
+            rate_limit_rps,
         }
     }
 }
