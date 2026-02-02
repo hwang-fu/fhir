@@ -52,3 +52,22 @@ pub async fn read(
         None => Err(AppError::NotFound(format!("Patient/{} not found", id))),
     }
 }
+
+/// PUT /fhir/Patient/{id} - Update a patient
+pub async fn update(
+    State(pool): State<Pool>,
+    Path(id): Path<Uuid>,
+    Json(body): Json<JsonValue>,
+) -> Result<impl IntoResponse, AppError> {
+    let repo = PatientRepository::new(pool);
+
+    match repo.update(id, body).await? {
+        Some(version) => {
+            let mut headers = HeaderMap::new();
+            headers.insert("ETag", format!("W/\"{}\"", version).parse().unwrap());
+
+            Ok((StatusCode::OK, headers))
+        }
+        None => Err(AppError::NotFound(format!("Patient/{} not found", id))),
+    }
+}
