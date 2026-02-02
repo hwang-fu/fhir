@@ -65,3 +65,10 @@ impl Bundle {
         });
     }
 }
+
+/// Bundle link for pagination
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BundleLink {
+    pub relation: String,
+    pub url: String,
+}
