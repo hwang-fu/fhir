@@ -6,3 +6,9 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
+fhir-sdk = { version = "0.14", features = ["r4b", "builders"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
