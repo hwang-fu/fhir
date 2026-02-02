@@ -63,4 +63,19 @@ impl PatientRepository {
             .await?;
         Ok(row.get(0))
     }
+
+    /// Search for patients
+    pub async fn search(&self, params: JsonValue) -> Result<Vec<(Uuid, JsonValue)>, AppError> {
+        let client = self.pool.get().await?;
+        let rows = client
+            .query(
+                "SELECT id, data FROM fhir_search('Patient', $1::jsonb)",
+                &[&params],
+            )
+            .await?;
+
+        let results = rows.iter().map(|row| (row.get(0), row.get(1))).collect();
+
+        Ok(results)
+    }
 }
