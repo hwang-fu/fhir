@@ -1,0 +1,5 @@
+comment = 'FHIR R4 storage extension for PostgreSQL'
+default_version = '@CARGO_VERSION@'
+module_pathname = '$libdir/fhir_pg_ext'
+relocatable = false
+superuser = true
