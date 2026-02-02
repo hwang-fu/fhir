@@ -72,3 +72,14 @@ pub struct BundleLink {
     pub relation: String,
     pub url: String,
 }
+
+/// Bundle entry containing a resource
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BundleEntry {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub full_url: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resource: Option<serde_json::Value>,
+}
