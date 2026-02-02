@@ -8,6 +8,9 @@ use pgrx::prelude::*;
 // Register this crate as a PostgreSQL extension
 pgrx::pg_module_magic!();
 
+// Load schema definitions (tables, indexes) when extension is created
+extension_sql_file!("schema.sql", name = "schema", bootstrap);
+
 /// Simple health check function to verify the extension is loaded
 #[pg_extern]
 fn fhir_ext_version() -> &'static str {
