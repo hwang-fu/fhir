@@ -57,6 +57,7 @@ async fn main() {
         .merge(public_routes)
         .merge(protected_routes)
         .with_state(pool)
+        .layer(axum_mw::from_fn(middleware::audit_middleware))
         .layer(axum_mw::from_fn(middleware::request_id_middleware))
         .layer(TraceLayer::new_for_http());
 

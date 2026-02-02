@@ -1,3 +1,5 @@
+//! Audit logging middleware for mutations
+
 use axum::{body::Body, extract::Request, http::Method, middleware::Next, response::Response};
 
 use super::request_id::RequestId;
