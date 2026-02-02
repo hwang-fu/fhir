@@ -160,3 +160,33 @@ pub async fn search(
 
     Ok(Json(bundle))
 }
+
+/// GET /fhir/Patient/{id}/_history - Get patient history
+pub async fn history(
+    State(pool): State<Pool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, AppError> {
+    let repo = PatientRepository::new(pool);
+    let versions = repo.history(id).await?;
+
+    // If no history found, the resource doesn't exist
+    if versions.is_empty() {
+        return Err(AppError::NotFound(format!("Patient/{} not found", id)));
+    }
+
+    // Build bundle entries with versioned URLs
+    let entries: Vec<BundleEntry> = versions
+        .into_iter()
+        .map(|(version, data)| {
+            BundleEntry::new(
+                Some(format!("/fhir/Patient/{}/_history/{}", id, version)),
+                data,
+            )
+        })
+        .collect();
+
+    // Create history bundle
+    let bundle = Bundle::history(entries);
+
+    Ok(Json(bundle))
+}
