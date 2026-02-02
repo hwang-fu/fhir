@@ -5,6 +5,7 @@
 
 use pgrx::prelude::*;
 
+mod history;
 mod search;
 mod storage;
 

@@ -1,3 +1,6 @@
+//! FHIR resource version history functionality
+
+use pgrx::datum::TimestampWithTimeZone;
 use pgrx::prelude::*;
 
 /// Retrieve all versions of a FHIR resource
@@ -12,7 +15,7 @@ fn fhir_history(
     (
         name!(version, i32),
         name!(data, pgrx::JsonB),
-        name!(created_at, pgrx::TimestampWithTimeZone),
+        name!(created_at, TimestampWithTimeZone),
     ),
 > {
     let results = Spi::connect(|client| {
@@ -28,7 +31,7 @@ fn fhir_history(
         for row in tup_table {
             let version: i32 = row.get(1)?.expect("version should not be null");
             let data: pgrx::JsonB = row.get(2)?.expect("data should not be null");
-            let created_at: pgrx::TimestampWithTimeZone =
+            let created_at: TimestampWithTimeZone =
                 row.get(3)?.expect("created_at should not be null");
             results.push((version, data, created_at));
         }
