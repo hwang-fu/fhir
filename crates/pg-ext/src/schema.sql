@@ -33,3 +33,14 @@ CREATE INDEX IF NOT EXISTS idx_fhir_history_resource_id
 
 CREATE INDEX IF NOT EXISTS idx_fhir_history_resource_version
     ON fhir_history(resource_id, version DESC);
+
+-- GIN index for JSONB full-text search
+CREATE INDEX IF NOT EXISTS idx_fhir_resources_data_gin
+    ON fhir_resources USING GIN (data);
+
+-- BTREE indexes on commonly searched extracted fields
+CREATE INDEX IF NOT EXISTS idx_fhir_resources_gender
+    ON fhir_resources ((data->>'gender')) WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_fhir_resources_birthdate
+    ON fhir_resources ((data->>'birthDate')) WHERE deleted_at IS NULL;

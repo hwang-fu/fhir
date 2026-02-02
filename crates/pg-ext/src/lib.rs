@@ -5,6 +5,7 @@
 
 use pgrx::prelude::*;
 
+mod search;
 mod storage;
 
 // Register this crate as a PostgreSQL extension
