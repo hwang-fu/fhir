@@ -36,4 +36,20 @@ impl PatientRepository {
             None => Ok(None),
         }
     }
+
+    /// Update a patient
+    pub async fn update(&self, id: Uuid, data: JsonValue) -> Result<Option<i32>, AppError> {
+        let client = self.pool.get().await?;
+        let row = client
+            .query_opt(
+                "SELECT fhir_update('Patient', $1::uuid, $2::jsonb)",
+                &[&id, &data],
+            )
+            .await?;
+
+        match row {
+            Some(row) => Ok(row.get(0)),
+            None => Ok(None),
+        }
+    }
 }
