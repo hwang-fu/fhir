@@ -155,8 +155,66 @@ pub async fn search(
         .map(|(id, data)| BundleEntry::new(Some(format!("/fhir/Patient/{}", id)), data))
         .collect();
 
+    // Pagination parameters
+    let count = params.count.unwrap_or(100) as u32;
+    let offset = params.offset.unwrap_or(0) as u32;
+
     // Create bundle response
-    let bundle = Bundle::searchset(total, entries);
+    let mut bundle = Bundle::searchset(total, entries);
+
+    // Build base query string (without pagination)
+    let mut base_query = Vec::new();
+    if let Some(ref name) = params.name {
+        base_query.push(format!("name={}", name));
+    }
+    if let Some(ref gender) = params.gender {
+        base_query.push(format!("gender={}", gender));
+    }
+    if let Some(ref birthdate) = params.birthdate {
+        base_query.push(format!("birthdate={}", birthdate));
+    }
+    if let Some(ref sort) = params.sort {
+        base_query.push(format!("_sort={}", sort));
+    }
+    let base_query_str = if base_query.is_empty() {
+        String::new()
+    } else {
+        format!("{}&", base_query.join("&"))
+    };
+
+    // Add self link
+    bundle.add_link(
+        "self",
+        &format!(
+            "/fhir/Patient?{}_count={}&_offset={}",
+            base_query_str, count, offset
+        ),
+    );
+
+    // Add next link if there are more results
+    if offset + count < total {
+        bundle.add_link(
+            "next",
+            &format!(
+                "/fhir/Patient?{}_count={}&_offset={}",
+                base_query_str,
+                count,
+                offset + count
+            ),
+        );
+    }
+
+    // Add previous link if not on first page
+    if offset > 0 {
+        let prev_offset = if offset >= count { offset - count } else { 0 };
+        bundle.add_link(
+            "previous",
+            &format!(
+                "/fhir/Patient?{}_count={}&_offset={}",
+                base_query_str, count, prev_offset
+            ),
+        );
+    }
 
     Ok(Json(bundle))
 }
