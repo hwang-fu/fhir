@@ -108,3 +108,12 @@ pub struct CapabilitySearchParam {
     #[serde(rename = "type")]
     pub param_type: String,
 }
+
+impl CapabilitySearchParam {
+    pub fn new(name: &str, param_type: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            param_type: param_type.to_string(),
+        }
+    }
+}
