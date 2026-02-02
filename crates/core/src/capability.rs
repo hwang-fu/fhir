@@ -92,3 +92,11 @@ impl CapabilityResource {
 pub struct CapabilityInteraction {
     pub code: String,
 }
+
+impl CapabilityInteraction {
+    pub fn new(code: &str) -> Self {
+        Self {
+            code: code.to_string(),
+        }
+    }
+}
