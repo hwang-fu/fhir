@@ -10,6 +10,7 @@ mod routes;
 
 use axum::{Extension, Router, middleware as axum_mw, routing::get};
 use std::net::SocketAddr;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -52,6 +53,24 @@ async fn main() {
     // Public routes (no auth required)
     let public_routes = Router::new().route("/metadata", get(routes::metadata::get));
 
+    // Build CORS layer
+    let cors = if config.cors_origins.iter().any(|o| o == "*") {
+        CorsLayer::new()
+            .allow_origin(Any)
+            .allow_methods(Any)
+            .allow_headers(Any)
+    } else {
+        let origins: Vec<_> = config
+            .cors_origins
+            .iter()
+            .filter_map(|o| o.parse().ok())
+            .collect();
+        CorsLayer::new()
+            .allow_origin(origins)
+            .allow_methods(Any)
+            .allow_headers(Any)
+    };
+
     // Build application
     let app = Router::new()
         .merge(public_routes)
@@ -59,6 +78,7 @@ async fn main() {
         .with_state(pool)
         .layer(axum_mw::from_fn(middleware::audit_middleware))
         .layer(axum_mw::from_fn(middleware::request_id_middleware))
+        .layer(cors)
         .layer(TraceLayer::new_for_http());
 
     // Start server
