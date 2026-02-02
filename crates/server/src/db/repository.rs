@@ -23,4 +23,17 @@ impl PatientRepository {
             .await?;
         Ok(row.get(0))
     }
+
+    /// Get a patient by ID
+    pub async fn get(&self, id: Uuid) -> Result<Option<JsonValue>, AppError> {
+        let client = self.pool.get().await?;
+        let row = client
+            .query_opt("SELECT fhir_get('Patient', $1::uuid)", &[&id])
+            .await?;
+
+        match row {
+            Some(row) => Ok(row.get(0)),
+            None => Ok(None),
+        }
+    }
 }
