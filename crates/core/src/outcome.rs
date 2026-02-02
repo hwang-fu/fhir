@@ -85,6 +85,19 @@ impl OperationOutcome {
     pub fn conflict(message: &str) -> Self {
         Self::error(IssueType::Conflict, message)
     }
+
+    /// Create a successful validation outcome
+    pub fn success(message: &str) -> Self {
+        Self {
+            resource_type: "OperationOutcome".to_string(),
+            issue: vec![OperationOutcomeIssue {
+                severity: IssueSeverity::Information,
+                code: IssueType::Informational,
+                diagnostics: Some(message.to_string()),
+                location: Vec::new(),
+            }],
+        }
+    }
 }
 
 /// Individual issue in an OperationOutcome
