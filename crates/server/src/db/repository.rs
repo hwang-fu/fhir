@@ -9,3 +9,9 @@ use crate::error::AppError;
 pub struct PatientRepository {
     pool: Pool,
 }
+
+impl PatientRepository {
+    pub fn new(pool: Pool) -> Self {
+        Self { pool }
+    }
+}
