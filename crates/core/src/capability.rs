@@ -40,3 +40,12 @@ pub struct CapabilityRest {
     pub mode: String,
     pub resource: Vec<CapabilityResource>,
 }
+
+impl Default for CapabilityRest {
+    fn default() -> Self {
+        Self {
+            mode: "server".to_string(),
+            resource: vec![CapabilityResource::patient()],
+        }
+    }
+}
