@@ -100,3 +100,53 @@ fn fhir_delete(resource_type: &str, id: pgrx::Uuid) -> bool {
 
     true
 }
+
+/// Update an existing FHIR resource
+///
+/// Increments version and records the update in history.
+/// Returns the new version number, or None if resource not found.
+#[pg_extern]
+fn fhir_update(resource_type: &str, id: pgrx::Uuid, data: pgrx::JsonB) -> Option<i32> {
+    // Get current version
+    let current_version: Option<i32> = Spi::get_one_with_args(
+        "SELECT version FROM fhir_resources WHERE id = $1 AND resource_type = $2 AND
+  deleted_at IS NULL",
+        &[id.into(), resource_type.into()],
+    )
+    .expect("Failed to query resource");
+
+    let Some(version) = current_version else {
+        return None;
+    };
+
+    let new_version = version + 1;
+    let data_for_history = pgrx::JsonB(data.0.clone());
+
+    // Update the resource
+    Spi::run_with_args(
+        "UPDATE fhir_resources SET data = $1, version = $2, updated_at = NOW() WHERE id =
+  $3 AND resource_type = $4",
+        &[
+            data.into(),
+            new_version.into(),
+            id.into(),
+            resource_type.into(),
+        ],
+    )
+    .expect("Failed to update resource");
+
+    // Record in history
+    Spi::run_with_args(
+        "INSERT INTO fhir_history (resource_id, resource_type, version, data) VALUES ($1,
+  $2, $3, $4)",
+        &[
+            id.into(),
+            resource_type.into(),
+            new_version.into(),
+            data_for_history.into(),
+        ],
+    )
+    .expect("Failed to insert history");
+
+    Some(new_version)
+}
