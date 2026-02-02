@@ -38,3 +38,7 @@ pub async fn request_id_middleware(mut request: Request<Body>, next: Next) -> Re
 
     response
 }
+
+/// Request ID stored in request extensions
+#[derive(Clone, Debug)]
+pub struct RequestId(pub String);
