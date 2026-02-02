@@ -71,3 +71,17 @@ pub async fn update(
         None => Err(AppError::NotFound(format!("Patient/{} not found", id))),
     }
 }
+
+/// DELETE /fhir/Patient/{id} - Delete a patient
+pub async fn delete(
+    State(pool): State<Pool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, AppError> {
+    let repo = PatientRepository::new(pool);
+
+    if repo.delete(id).await? {
+        Ok(StatusCode::NO_CONTENT)
+    } else {
+        Err(AppError::NotFound(format!("Patient/{} not found", id)))
+    }
+}
