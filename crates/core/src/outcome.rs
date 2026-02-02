@@ -54,3 +54,19 @@ pub struct OperationOutcome {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub issue: Vec<OperationOutcomeIssue>,
 }
+
+impl OperationOutcome {}
+
+/// Individual issue in an OperationOutcome
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OperationOutcomeIssue {
+    pub severity: IssueSeverity,
+    pub code: IssueType,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub diagnostics: Option<String>,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub location: Vec<String>,
+}
