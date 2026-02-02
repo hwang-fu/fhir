@@ -13,3 +13,9 @@ use fhir_core::OperationOutcome;
 pub struct ApiKeyAuth {
     api_key: Option<String>,
 }
+
+impl ApiKeyAuth {
+    pub fn new(api_key: Option<String>) -> Self {
+        Self { api_key }
+    }
+}
