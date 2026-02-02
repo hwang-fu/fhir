@@ -15,4 +15,5 @@ pub fn fhir_routes() -> Router<Pool> {
                 .put(patient::update)
                 .delete(patient::delete),
         )
+        .route("/Patient/{id}/_history", get(patient::history))
 }
