@@ -8,6 +8,10 @@ license.workspace = true
 [lib]
 crate-type = ["cdylib", "lib"]
 
+[[bin]]
+name = "pgrx_embed_fhir_pg_ext"
+path = "src/bin/pgrx_embed.rs"
+
 [features]
 default = ["pg17"]
 pg13 = ["pgrx/pg13", "pgrx-tests/pg13"]

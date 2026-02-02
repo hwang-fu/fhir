@@ -48,12 +48,13 @@ fn fhir_put(resource_type: &str, data: pgrx::JsonB) -> pgrx::Uuid {
 /// Returns the resource data as JSONB, or None if not found or deleted.
 #[pg_extern]
 fn fhir_get(resource_type: &str, id: pgrx::Uuid) -> Option<pgrx::JsonB> {
+    // Use ok().flatten() to convert "no rows" error to None
     Spi::get_one_with_args(
-        "SELECT data FROM fhir_resources WHERE id = $1 AND resource_type = $2 AND
-  deleted_at IS NULL",
+        "SELECT data FROM fhir_resources WHERE id = $1 AND resource_type = $2 AND deleted_at IS NULL",
         &[id.into(), resource_type.into()],
     )
-    .expect("Failed to query resource")
+    .ok()
+    .flatten()
 }
 
 /// Soft-delete a FHIR resource
@@ -64,11 +65,11 @@ fn fhir_get(resource_type: &str, id: pgrx::Uuid) -> Option<pgrx::JsonB> {
 fn fhir_delete(resource_type: &str, id: pgrx::Uuid) -> bool {
     // Get current version before deletion
     let current_version: Option<i32> = Spi::get_one_with_args(
-        "SELECT version FROM fhir_resources WHERE id = $1 AND resource_type = $2 AND
-  deleted_at IS NULL",
+        "SELECT version FROM fhir_resources WHERE id = $1 AND resource_type = $2 AND deleted_at IS NULL",
         &[id.into(), resource_type.into()],
     )
-    .expect("Failed to query resource");
+    .ok()
+    .flatten();
 
     let Some(version) = current_version else {
         return false;
@@ -109,11 +110,11 @@ fn fhir_delete(resource_type: &str, id: pgrx::Uuid) -> bool {
 fn fhir_update(resource_type: &str, id: pgrx::Uuid, data: pgrx::JsonB) -> Option<i32> {
     // Get current version
     let current_version: Option<i32> = Spi::get_one_with_args(
-        "SELECT version FROM fhir_resources WHERE id = $1 AND resource_type = $2 AND
-  deleted_at IS NULL",
+        "SELECT version FROM fhir_resources WHERE id = $1 AND resource_type = $2 AND deleted_at IS NULL",
         &[id.into(), resource_type.into()],
     )
-    .expect("Failed to query resource");
+    .ok()
+    .flatten();
 
     let Some(version) = current_version else {
         return None;
