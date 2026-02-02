@@ -2,12 +2,13 @@
 
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::{HeaderMap, StatusCode, header},
     response::IntoResponse,
 };
 use deadpool_postgres::Pool;
 use fhir_core::{Bundle, BundleEntry};
+use serde::Deserialize;
 use serde_json::Value as JsonValue;
 use uuid::Uuid;
 
