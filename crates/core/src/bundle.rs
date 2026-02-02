@@ -1,3 +1,5 @@
+//! FHIR Bundle resource for search results
+
 use serde::{Deserialize, Serialize};
 
 /// FHIR Bundle types

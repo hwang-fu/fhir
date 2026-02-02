@@ -1,3 +1,5 @@
+//! FHIR OperationOutcome for error responses
+
 use serde::{Deserialize, Serialize};
 
 /// Severity of the issue
@@ -55,7 +57,35 @@ pub struct OperationOutcome {
     pub issue: Vec<OperationOutcomeIssue>,
 }
 
-impl OperationOutcome {}
+impl OperationOutcome {
+    /// Create a new OperationOutcome with a single issue
+    pub fn error(code: IssueType, diagnostics: &str) -> Self {
+        Self {
+            resource_type: "OperationOutcome".to_string(),
+            issue: vec![OperationOutcomeIssue {
+                severity: IssueSeverity::Error,
+                code,
+                diagnostics: Some(diagnostics.to_string()),
+                location: Vec::new(),
+            }],
+        }
+    }
+
+    /// Create a not found error
+    pub fn not_found(message: &str) -> Self {
+        Self::error(IssueType::NotFound, message)
+    }
+
+    /// Create a validation error
+    pub fn invalid(message: &str) -> Self {
+        Self::error(IssueType::Invalid, message)
+    }
+
+    /// Create a conflict error (e.g., version mismatch)
+    pub fn conflict(message: &str) -> Self {
+        Self::error(IssueType::Conflict, message)
+    }
+}
 
 /// Individual issue in an OperationOutcome
 #[derive(Debug, Clone, Serialize, Deserialize)]

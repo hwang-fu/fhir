@@ -1,3 +1,5 @@
+//! Error types for the FHIR server
+
 use crate::outcome::{IssueType, OperationOutcome};
 use thiserror::Error;
 
@@ -30,5 +32,11 @@ impl FhirError {
             FhirError::Database(msg) => OperationOutcome::error(IssueType::Exception, msg),
             FhirError::Internal(msg) => OperationOutcome::error(IssueType::Exception, msg),
         }
+    }
+}
+
+impl From<FhirError> for OperationOutcome {
+    fn from(err: FhirError) -> Self {
+        err.to_outcome()
     }
 }
