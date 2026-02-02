@@ -190,3 +190,39 @@ pub async fn history(
 
     Ok(Json(bundle))
 }
+
+pub async fn validate(Json(body): Json<JsonValue>) -> impl IntoResponse {
+    // Check resourceType is present and correct
+    let resource_type = body.get("resourceType").and_then(|v| v.as_str());
+
+    match resource_type {
+        Some("Patient") => {
+            // Try to deserialize into fhir-sdk Patient type for validation
+            match serde_json::from_value::<fhir_core::Patient>(body) {
+                Ok(_) => {
+                    // Valid Patient resource
+                    let outcome = fhir_core::OperationOutcome::success("Patient resource is valid");
+                    (StatusCode::OK, Json(outcome))
+                }
+                Err(e) => {
+                    // Deserialization failed - validation error
+                    let outcome =
+                        fhir_core::OperationOutcome::invalid(&format!("Validation failed: {}", e));
+                    (StatusCode::BAD_REQUEST, Json(outcome))
+                }
+            }
+        }
+        Some(other) => {
+            let outcome = fhir_core::OperationOutcome::invalid(&format!(
+                "Expected resourceType 'Patient', got '{}'",
+                other
+            ));
+            (StatusCode::BAD_REQUEST, Json(outcome))
+        }
+        None => {
+            let outcome =
+                fhir_core::OperationOutcome::invalid("Missing required field: resourceType");
+            (StatusCode::BAD_REQUEST, Json(outcome))
+        }
+    }
+}
