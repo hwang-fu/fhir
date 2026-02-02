@@ -55,3 +55,48 @@ fn fhir_get(resource_type: &str, id: pgrx::Uuid) -> Option<pgrx::JsonB> {
     )
     .expect("Failed to query resource")
 }
+
+/// Soft-delete a FHIR resource
+///
+/// Sets deleted_at timestamp and records the deletion in history.
+/// Returns true if a resource was deleted, false if not found.
+#[pg_extern]
+fn fhir_delete(resource_type: &str, id: pgrx::Uuid) -> bool {
+    // Get current version before deletion
+    let current_version: Option<i32> = Spi::get_one_with_args(
+        "SELECT version FROM fhir_resources WHERE id = $1 AND resource_type = $2 AND
+  deleted_at IS NULL",
+        &[id.into(), resource_type.into()],
+    )
+    .expect("Failed to query resource");
+
+    let Some(version) = current_version else {
+        return false;
+    };
+
+    // Soft delete the resource
+    Spi::run_with_args(
+        "UPDATE fhir_resources SET deleted_at = NOW() WHERE id = $1 AND resource_type =
+  $2",
+        &[id.into(), resource_type.into()],
+    )
+    .expect("Failed to delete resource");
+
+    // Record deletion in history (store empty JSON to mark deletion)
+    let new_version = version + 1;
+    let empty_data = pgrx::JsonB(serde_json::json!({"deleted": true}));
+
+    Spi::run_with_args(
+        "INSERT INTO fhir_history (resource_id, resource_type, version, data) VALUES ($1,
+  $2, $3, $4)",
+        &[
+            id.into(),
+            resource_type.into(),
+            new_version.into(),
+            empty_data.into(),
+        ],
+    )
+    .expect("Failed to insert history");
+
+    true
+}
