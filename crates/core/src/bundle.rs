@@ -35,6 +35,17 @@ pub struct Bundle {
 }
 
 impl Bundle {
+    /// Create a new search result bundle
+    pub fn searchset(total: u32, entries: Vec<BundleEntry>) -> Self {
+        Self {
+            resource_type: "Bundle".to_string(),
+            bundle_type: BundleType::Searchset,
+            total: Some(total),
+            link: Vec::new(),
+            entry: entries,
+        }
+    }
+
     /// Create a new history bundle
     pub fn history(entries: Vec<BundleEntry>) -> Self {
         Self {
