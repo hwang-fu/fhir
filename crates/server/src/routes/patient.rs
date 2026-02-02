@@ -1,3 +1,5 @@
+//! Patient resource HTTP handlers
+
 use axum::{
     Json,
     extract::{Path, State},
@@ -5,11 +7,26 @@ use axum::{
     response::IntoResponse,
 };
 use deadpool_postgres::Pool;
+use fhir_core::{Bundle, BundleEntry};
 use serde_json::Value as JsonValue;
 use uuid::Uuid;
 
 use crate::db::PatientRepository;
 use crate::error::AppError;
+
+/// Query parameters for patient search
+#[derive(Debug, Deserialize, Default)]
+pub struct SearchParams {
+    pub name: Option<String>,
+    pub gender: Option<String>,
+    pub birthdate: Option<String>,
+    #[serde(rename = "_count")]
+    pub count: Option<i64>,
+    #[serde(rename = "_offset")]
+    pub offset: Option<i64>,
+    #[serde(rename = "_sort")]
+    pub sort: Option<String>,
+}
 
 /// POST /fhir/Patient - Create a new patient
 pub async fn create(
@@ -24,7 +41,7 @@ pub async fn create(
         header::LOCATION,
         format!("/fhir/Patient/{}", id).parse().unwrap(),
     );
-    headers.insert("ETag", format!("W/\"1\"").parse().unwrap());
+    headers.insert("ETag", "W/\"1\"".parse().unwrap());
 
     Ok((StatusCode::CREATED, headers))
 }
