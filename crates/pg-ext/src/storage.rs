@@ -77,8 +77,7 @@ fn fhir_delete(resource_type: &str, id: pgrx::Uuid) -> bool {
 
     // Soft delete the resource
     Spi::run_with_args(
-        "UPDATE fhir_resources SET deleted_at = NOW() WHERE id = $1 AND resource_type =
-  $2",
+        "UPDATE fhir_resources SET deleted_at = NOW() WHERE id = $1 AND resource_type = $2",
         &[id.into(), resource_type.into()],
     )
     .expect("Failed to delete resource");
@@ -88,8 +87,7 @@ fn fhir_delete(resource_type: &str, id: pgrx::Uuid) -> bool {
     let empty_data = pgrx::JsonB(serde_json::json!({"deleted": true}));
 
     Spi::run_with_args(
-        "INSERT INTO fhir_history (resource_id, resource_type, version, data) VALUES ($1,
-  $2, $3, $4)",
+        "INSERT INTO fhir_history (resource_id, resource_type, version, data) VALUES ($1, $2, $3, $4)",
         &[
             id.into(),
             resource_type.into(),
@@ -125,8 +123,7 @@ fn fhir_update(resource_type: &str, id: pgrx::Uuid, data: pgrx::JsonB) -> Option
 
     // Update the resource
     Spi::run_with_args(
-        "UPDATE fhir_resources SET data = $1, version = $2, updated_at = NOW() WHERE id =
-  $3 AND resource_type = $4",
+        "UPDATE fhir_resources SET data = $1, version = $2, updated_at = NOW() WHERE id = $3 AND resource_type = $4",
         &[
             data.into(),
             new_version.into(),
@@ -138,8 +135,7 @@ fn fhir_update(resource_type: &str, id: pgrx::Uuid, data: pgrx::JsonB) -> Option
 
     // Record in history
     Spi::run_with_args(
-        "INSERT INTO fhir_history (resource_id, resource_type, version, data) VALUES ($1,
-  $2, $3, $4)",
+        "INSERT INTO fhir_history (resource_id, resource_type, version, data) VALUES ($1, $2, $3, $4)",
         &[
             id.into(),
             resource_type.into(),
