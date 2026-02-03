@@ -11,7 +11,7 @@ use uuid::Uuid;
 fn fhir_put(resource_type: &str, data: pgrx::JsonB) -> pgrx::Uuid {
     let id = Uuid::new_v4();
     let id_bytes = *id.as_bytes();
-    let version = 1_i32;
+    let version = 1 as i32;
 
     // Clone the inner JSON value for the history insert
     let data_for_history = pgrx::JsonB(data.0.clone());
