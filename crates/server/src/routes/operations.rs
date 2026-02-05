@@ -50,8 +50,8 @@ pub async fn nl_search(
     Extension(client): Extension<Option<ClaudeClient>>,
     Json(body): Json<NlSearchRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    let client = client
-        .ok_or_else(|| AppError::Internal("ANTHROPIC_API_KEY not configured".to_string()))?;
+    let client =
+        client.ok_or_else(|| AppError::Internal("ANTHROPIC_API_KEY not configured".to_string()))?;
 
     tracing::info!(query = &body.query, "Natural language search");
 
@@ -86,8 +86,8 @@ pub async fn generate(
     Extension(client): Extension<Option<ClaudeClient>>,
     Json(body): Json<GenerateRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    let client = client
-        .ok_or_else(|| AppError::Internal("ANTHROPIC_API_KEY not configured".to_string()))?;
+    let client =
+        client.ok_or_else(|| AppError::Internal("ANTHROPIC_API_KEY not configured".to_string()))?;
 
     let count = body.count.unwrap_or(5).min(50); // Cap at 50 to avoid abuse
     tracing::info!(count = count, "Generating synthetic patients");
@@ -134,8 +134,8 @@ pub async fn chat(
     Extension(client): Extension<Option<ClaudeClient>>,
     Json(body): Json<ChatRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    let client = client
-        .ok_or_else(|| AppError::Internal("ANTHROPIC_API_KEY not configured".to_string()))?;
+    let client =
+        client.ok_or_else(|| AppError::Internal("ANTHROPIC_API_KEY not configured".to_string()))?;
 
     tracing::info!(message = &body.message, "Chat request");
 
