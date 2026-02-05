@@ -1,9 +1,9 @@
 //! Application error handling
 
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use fhir_core::OperationOutcome;
 
