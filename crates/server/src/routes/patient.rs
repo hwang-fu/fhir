@@ -68,6 +68,8 @@ pub async fn create(
     let repo = PatientRepository::new(pool);
     let id = repo.create(body).await?;
 
+    tracing::info!(patient_id = %id, "Patient created");
+
     let mut headers = HeaderMap::new();
     headers.insert(
         header::LOCATION,
@@ -87,6 +89,7 @@ pub async fn read(
 
     match repo.get(id).await? {
         Some(data) => {
+            tracing::info!(patient_id = %id, "Patient read");
             let mut headers = HeaderMap::new();
             // Extract version from meta if available, default to 1
             let version = data
@@ -112,6 +115,7 @@ pub async fn update(
 
     match repo.update(id, body).await? {
         Some(version) => {
+            tracing::info!(patient_id = %id, version = version, "Patient updated");
             let mut headers = HeaderMap::new();
             headers.insert("ETag", format!("W/\"{}\"", version).parse().unwrap());
 
@@ -129,6 +133,7 @@ pub async fn delete(
     let repo = PatientRepository::new(pool);
 
     if repo.delete(id).await? {
+        tracing::info!(patient_id = %id, "Patient deleted");
         Ok(StatusCode::NO_CONTENT)
     } else {
         Err(AppError::NotFound(format!("Patient/{} not found", id)))
@@ -148,6 +153,13 @@ pub async fn search(
 
     // Get total count for pagination
     let total = repo.count(json_params).await? as u32;
+
+    tracing::info!(
+        total = total,
+        name = params.name.as_deref().unwrap_or(""),
+        gender = params.gender.as_deref().unwrap_or(""),
+        "Patient search"
+    );
 
     // Build bundle entries
     let entries: Vec<BundleEntry> = results
@@ -227,6 +239,8 @@ pub async fn history(
     let repo = PatientRepository::new(pool);
     let versions = repo.history(id).await?;
 
+    tracing::info!(patient_id = %id, versions = versions.len(), "Patient history");
+
     // If no history found, the resource doesn't exist
     if versions.is_empty() {
         return Err(AppError::NotFound(format!("Patient/{} not found", id)));
@@ -259,12 +273,12 @@ pub async fn validate(Json(body): Json<JsonValue>) -> impl IntoResponse {
             // Try to deserialize into fhir-sdk Patient type for validation
             match serde_json::from_value::<fhir_core::Patient>(body) {
                 Ok(_) => {
-                    // Valid Patient resource
+                    tracing::info!("Patient validation succeeded");
                     let outcome = fhir_core::OperationOutcome::success("Patient resource is valid");
                     (StatusCode::OK, Json(outcome))
                 }
                 Err(e) => {
-                    // Deserialization failed - validation error
+                    tracing::warn!(error = %e, "Patient validation failed");
                     let outcome =
                         fhir_core::OperationOutcome::invalid(&format!("Validation failed: {}", e));
                     (StatusCode::BAD_REQUEST, Json(outcome))

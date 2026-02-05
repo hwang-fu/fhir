@@ -1,13 +1,14 @@
 //! Application error handling
 
 use axum::{
-    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
+    Json,
 };
 use fhir_core::OperationOutcome;
 
 /// Application error type
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum AppError {
     NotFound(String),
