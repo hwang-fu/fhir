@@ -1,6 +1,8 @@
 //! HTTP route definitions
 
+pub mod health;
 pub mod metadata;
+pub mod metrics;
 mod patient;
 
 use axum::{
