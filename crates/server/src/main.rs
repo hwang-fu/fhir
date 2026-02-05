@@ -2,6 +2,7 @@
 //!
 //! An Axum-based HTTP server implementing FHIR R4 Patient resource endpoints.
 
+mod ai;
 mod config;
 mod db;
 mod error;
@@ -48,11 +49,22 @@ async fn main() {
         tracing::warn!("API key authentication disabled (no API_KEY env var)");
     }
 
+    // Create Claude client (None if ANTHROPIC_API_KEY not set)
+    let claude_client: Option<ai::ClaudeClient> =
+        if let Some(ref key) = config.anthropic_api_key {
+            tracing::info!("Anthropic API key configured, AI features enabled");
+            Some(ai::ClaudeClient::new(key.clone()))
+        } else {
+            tracing::warn!("ANTHROPIC_API_KEY not set, AI features disabled");
+            None
+        };
+
     // Protected routes (require auth)
     let protected_routes = Router::new()
         .nest("/fhir", routes::fhir_routes())
         .layer(axum_mw::from_fn(middleware::auth::auth_middleware))
         .layer(Extension(auth))
+        .layer(Extension(claude_client))
         .layer(axum_mw::from_fn(middleware::rate_limit_middleware))
         .layer(Extension(rate_limiter));
 
