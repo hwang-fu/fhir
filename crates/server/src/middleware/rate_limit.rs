@@ -1,21 +1,22 @@
 //! Rate limiting middleware
 
 use axum::{
+    Json,
     body::Body,
     extract::Request,
     http::StatusCode,
     middleware::Next,
     response::{IntoResponse, Response},
-    Json,
 };
-use governor::{Quota, RateLimiter, state::InMemoryState, clock::DefaultClock};
+use governor::{Quota, RateLimiter, clock::DefaultClock, state::InMemoryState};
 use std::num::NonZeroU32;
 use std::sync::Arc;
 
 use fhir_core::OperationOutcome;
 
 /// Rate limiter state (shared across requests)
-pub type SharedRateLimiter = Arc<RateLimiter<governor::state::NotKeyed, InMemoryState, DefaultClock>>;
+pub type SharedRateLimiter =
+    Arc<RateLimiter<governor::state::NotKeyed, InMemoryState, DefaultClock>>;
 
 /// Create a new rate limiter with specified requests per second
 pub fn create_rate_limiter(requests_per_second: u32) -> SharedRateLimiter {
@@ -24,15 +25,9 @@ pub fn create_rate_limiter(requests_per_second: u32) -> SharedRateLimiter {
 }
 
 /// Rate limiting middleware
-pub async fn rate_limit_middleware(
-    request: Request<Body>,
-    next: Next,
-) -> Response {
+pub async fn rate_limit_middleware(request: Request<Body>, next: Next) -> Response {
     // Get rate limiter from extensions
-    let limiter = request
-        .extensions()
-        .get::<SharedRateLimiter>()
-        .cloned();
+    let limiter = request.extensions().get::<SharedRateLimiter>().cloned();
 
     if let Some(limiter) = limiter {
         // Check if request is allowed
