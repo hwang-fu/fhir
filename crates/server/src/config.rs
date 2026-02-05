@@ -7,6 +7,7 @@ pub struct Config {
     pub api_key: Option<String>,
     pub cors_origins: Vec<String>,
     pub rate_limit_rps: u32,
+    pub anthropic_api_key: Option<String>,
 }
 
 impl Config {
@@ -28,12 +29,15 @@ impl Config {
             .and_then(|s| s.parse().ok())
             .unwrap_or(100);
 
+        let anthropic_api_key = std::env::var("ANTHROPIC_API_KEY").ok();
+
         Self {
             database_url,
             bind_address,
             api_key,
             cors_origins,
             rate_limit_rps,
+            anthropic_api_key,
         }
     }
 }
