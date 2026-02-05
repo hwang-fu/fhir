@@ -23,7 +23,7 @@ async fn main() {
         .with(tracing_subscriber::EnvFilter::new(
             std::env::var("RUST_LOG").unwrap_or_else(|_| "info,tower_http=debug".into()),
         ))
-        .with(tracing_subscriber::fmt::layer())
+        .with(tracing_subscriber::fmt::layer().json())
         .init();
 
     // Load configuration
@@ -56,8 +56,17 @@ async fn main() {
         .layer(axum_mw::from_fn(middleware::rate_limit_middleware))
         .layer(Extension(rate_limiter));
 
+    // Install Prometheus metrics recorder
+    let prometheus_handle = metrics_exporter_prometheus::PrometheusBuilder::new()
+        .install_recorder()
+        .expect("Failed to install Prometheus recorder");
+
     // Public routes (no auth required)
-    let public_routes = Router::new().route("/metadata", get(routes::metadata::get));
+    let public_routes = Router::new()
+        .route("/metadata", get(routes::metadata::get))
+        .route("/health", get(routes::health::check))
+        .route("/metrics", get(routes::metrics::get))
+        .layer(Extension(prometheus_handle));
 
     // Build CORS layer
     let cors = if config.cors_origins.iter().any(|o| o == "*") {
@@ -85,7 +94,8 @@ async fn main() {
         .layer(axum_mw::from_fn(middleware::audit_middleware))
         .layer(axum_mw::from_fn(middleware::request_id_middleware))
         .layer(cors)
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+        .layer(axum_mw::from_fn(middleware::metrics_middleware));
 
     // Start server
     let addr: SocketAddr = config.bind_address.parse().expect("Invalid bind address");
