@@ -218,7 +218,7 @@ pub async fn search(
 
     // Add previous link if not on first page
     if offset > 0 {
-        let prev_offset = if offset >= count { offset - count } else { 0 };
+        let prev_offset = offset.saturating_sub(count);
         bundle.add_link(
             "previous",
             &format!(

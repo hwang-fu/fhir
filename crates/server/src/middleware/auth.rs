@@ -22,7 +22,7 @@ impl ApiKeyAuth {
     }
 
     /// Check if authentication is required and valid
-    pub fn validate(&self, headers: &HeaderMap) -> Result<(), Response> {
+    pub fn validate(&self, headers: &HeaderMap) -> Result<(), Box<Response>> {
         // If no API key configured, auth is disabled
         let Some(ref expected_key) = self.api_key else {
             return Ok(());
@@ -36,14 +36,18 @@ impl ApiKeyAuth {
             Some(_) => {
                 let outcome =
                     OperationOutcome::error(fhir_core::IssueType::Security, "Invalid API key");
-                Err((StatusCode::UNAUTHORIZED, Json(outcome)).into_response())
+                Err(Box::new(
+                    (StatusCode::UNAUTHORIZED, Json(outcome)).into_response(),
+                ))
             }
             None => {
                 let outcome = OperationOutcome::error(
                     fhir_core::IssueType::Security,
                     "Missing X-API-Key header",
                 );
-                Err((StatusCode::UNAUTHORIZED, Json(outcome)).into_response())
+                Err(Box::new(
+                    (StatusCode::UNAUTHORIZED, Json(outcome)).into_response(),
+                ))
             }
         }
     }
@@ -60,7 +64,7 @@ pub async fn auth_middleware(headers: HeaderMap, request: Request<Body>, next: N
 
     // Validate API key
     if let Err(response) = auth.validate(&headers) {
-        return response;
+        return *response;
     }
 
     next.run(request).await

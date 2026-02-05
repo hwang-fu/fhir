@@ -2,7 +2,7 @@
 
 use super::client::{ClaudeClient, Content, ContentBlock, Message, Tool};
 use crate::db::PatientRepository;
-use serde_json::{json, Value as JsonValue};
+use serde_json::{Value as JsonValue, json};
 
 const SYSTEM_PROMPT: &str = r#"You are a helpful FHIR Patient data assistant. You can search for patients, retrieve specific patient records, and count patients in the system.
 
@@ -56,8 +56,7 @@ fn chat_tools() -> Vec<Tool> {
         },
         Tool {
             name: "count_patients".to_string(),
-            description: "Count the total number of patients matching search criteria"
-                .to_string(),
+            description: "Count the total number of patients matching search criteria".to_string(),
             input_schema: json!({
                 "type": "object",
                 "properties": {
