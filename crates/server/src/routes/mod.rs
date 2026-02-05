@@ -3,6 +3,7 @@
 pub mod health;
 pub mod metadata;
 pub mod metrics;
+mod operations;
 mod patient;
 
 use axum::{
@@ -23,4 +24,7 @@ pub fn fhir_routes() -> Router<Pool> {
         )
         .route("/Patient/{id}/_history", get(patient::history))
         .route("/Patient/$validate", post(patient::validate))
+        .route("/Patient/$nl-search", post(operations::nl_search))
+        .route("/Patient/$generate", post(operations::generate))
+        .route("/$chat", post(operations::chat))
 }
