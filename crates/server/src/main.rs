@@ -50,14 +50,13 @@ async fn main() {
     }
 
     // Create Claude client (None if ANTHROPIC_API_KEY not set)
-    let claude_client: Option<ai::ClaudeClient> =
-        if let Some(ref key) = config.anthropic_api_key {
-            tracing::info!("Anthropic API key configured, AI features enabled");
-            Some(ai::ClaudeClient::new(key.clone()))
-        } else {
-            tracing::warn!("ANTHROPIC_API_KEY not set, AI features disabled");
-            None
-        };
+    let claude_client: Option<ai::ClaudeClient> = if let Some(ref key) = config.anthropic_api_key {
+        tracing::info!("Anthropic API key configured, AI features enabled");
+        Some(ai::ClaudeClient::new(key.clone()))
+    } else {
+        tracing::warn!("ANTHROPIC_API_KEY not set, AI features disabled");
+        None
+    };
 
     // Protected routes (require auth)
     let protected_routes = Router::new()
