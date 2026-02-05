@@ -54,8 +54,5 @@ fn extract_json(text: &str) -> Result<String, String> {
         }
     }
 
-    Err(format!(
-        "Could not extract JSON from response: {}",
-        trimmed
-    ))
+    Err(format!("Could not extract JSON from response: {}", trimmed))
 }
