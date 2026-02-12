@@ -1,4 +1,4 @@
-.PHONY: build test fmt clippy up down logs health seed clean
+.PHONY: build test fmt clippy up down logs health seed clean test-db-image integration-test
 
 # Build the core and server crates
 build:
@@ -38,6 +38,14 @@ seed:
 		-H "Content-Type: application/json" \
 		-H "X-API-Key: $${API_KEY:-}" \
 		-d '{"count": 10}' | jq . || echo "Failed — is the server running with ANTHROPIC_API_KEY set?"
+
+# Build the test database Docker image (required before running integration tests)
+test-db-image:
+	docker build -t fhir-pg-test:latest -f docker/postgres/Dockerfile .
+
+# Run integration tests (requires test-db-image to be built first)
+integration-test: test-db-image
+	cargo test -p fhir-server -- --test-threads=1
 
 # Remove build artifacts and Docker volumes
 clean:

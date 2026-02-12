@@ -40,3 +40,8 @@ metrics-exporter-prometheus = "0.16"
 
 # AI
 reqwest = { version = "0.12", features = ["json"] }
+
+[dev-dependencies]
+testcontainers = "0.23"
+http-body-util = "0.1"
+tower = { version = "0.5", features = ["util"] }

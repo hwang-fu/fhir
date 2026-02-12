@@ -50,3 +50,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker compose build
+
+  integration:
+    name: Integration Tests
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build test database image
+        run: make test-db-image
+      - name: Run integration tests
+        run: cargo test -p fhir-server -- --test-threads=1
