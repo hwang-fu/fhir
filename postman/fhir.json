@@ -1,0 +1,347 @@
+{
+  "info": {
+    "name": "FHIR R4 Patient Server",
+    "description": "Complete API collection for the FHIR R4 Patient Server.\n\nSet the `base_url` and `api_key` variables before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "api_key",
+      "value": "your-api-key"
+    },
+    {
+      "key": "patient_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        },
+        {
+          "name": "Metadata (CapabilityStatement)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/metadata"
+          }
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/metrics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CRUD",
+      "item": [
+        {
+          "name": "Create Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var location = pm.response.headers.get('Location');",
+                  "    var id = location.split('/').pop();",
+                  "    pm.collectionVariables.set('patient_id', id);",
+                  "    pm.test('Patient created', function () {",
+                  "        pm.expect(id).to.not.be.empty;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Patient\",\n  \"name\": [{\"family\": \"Smith\", \"given\": [\"John\"]}],\n  \"gender\": \"male\",\n  \"birthDate\": \"1990-05-15\"\n}"
+            },
+            "url": "{{base_url}}/fhir/Patient"
+          }
+        },
+        {
+          "name": "Read Patient",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "url": "{{base_url}}/fhir/Patient/{{patient_id}}"
+          }
+        },
+        {
+          "name": "Update Patient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Patient\",\n  \"name\": [{\"family\": \"Smith\", \"given\": [\"John\", \"Michael\"]}],\n  \"gender\": \"male\",\n  \"birthDate\": \"1990-05-15\",\n  \"active\": true\n}"
+            },
+            "url": "{{base_url}}/fhir/Patient/{{patient_id}}"
+          }
+        },
+        {
+          "name": "Delete Patient",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "url": "{{base_url}}/fhir/Patient/{{patient_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Search All Patients",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "url": "{{base_url}}/fhir/Patient"
+          }
+        },
+        {
+          "name": "Search by Name",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/fhir/Patient?name=Smith",
+              "host": ["{{base_url}}"],
+              "path": ["fhir", "Patient"],
+              "query": [{ "key": "name", "value": "Smith" }]
+            }
+          }
+        },
+        {
+          "name": "Search by Gender",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/fhir/Patient?gender=male",
+              "host": ["{{base_url}}"],
+              "path": ["fhir", "Patient"],
+              "query": [{ "key": "gender", "value": "male" }]
+            }
+          }
+        },
+        {
+          "name": "Search by Birthdate (born after 1990)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/fhir/Patient?birthdate=ge1990-01-01",
+              "host": ["{{base_url}}"],
+              "path": ["fhir", "Patient"],
+              "query": [{ "key": "birthdate", "value": "ge1990-01-01" }]
+            }
+          }
+        },
+        {
+          "name": "Paginated Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/fhir/Patient?_count=2&_offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["fhir", "Patient"],
+              "query": [
+                { "key": "_count", "value": "2" },
+                { "key": "_offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sorted Search (newest first)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/fhir/Patient?_sort=-birthdate&_count=5",
+              "host": ["{{base_url}}"],
+              "path": ["fhir", "Patient"],
+              "query": [
+                { "key": "_sort", "value": "-birthdate" },
+                { "key": "_count", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Combined Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/fhir/Patient?gender=male&name=Smith&_sort=name&_count=10",
+              "host": ["{{base_url}}"],
+              "path": ["fhir", "Patient"],
+              "query": [
+                { "key": "gender", "value": "male" },
+                { "key": "name", "value": "Smith" },
+                { "key": "_sort", "value": "name" },
+                { "key": "_count", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Extended",
+      "item": [
+        {
+          "name": "Patient History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "url": "{{base_url}}/fhir/Patient/{{patient_id}}/_history"
+          }
+        },
+        {
+          "name": "Validate Patient (valid)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Patient\",\n  \"name\": [{\"family\": \"Test\"}]\n}"
+            },
+            "url": "{{base_url}}/fhir/Patient/$validate"
+          }
+        },
+        {
+          "name": "Validate Patient (invalid)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Observation\"\n}"
+            },
+            "url": "{{base_url}}/fhir/Patient/$validate"
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Features",
+      "item": [
+        {
+          "name": "Generate Synthetic Patients",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"count\": 5\n}"
+            },
+            "url": "{{base_url}}/fhir/Patient/$generate"
+          }
+        },
+        {
+          "name": "Natural Language Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Find all male patients born after 1990\"\n}"
+            },
+            "url": "{{base_url}}/fhir/Patient/$nl-search"
+          }
+        },
+        {
+          "name": "Chat — Count Patients",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"How many patients are in the system?\"\n}"
+            },
+            "url": "{{base_url}}/fhir/$chat"
+          }
+        },
+        {
+          "name": "Chat — List Patients",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"List all female patients and their birth dates\"\n}"
+            },
+            "url": "{{base_url}}/fhir/$chat"
+          }
+        }
+      ]
+    }
+  ]
+}
