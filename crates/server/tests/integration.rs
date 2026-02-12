@@ -7,17 +7,17 @@
 //!   make test-db-image   (builds the fhir-pg-test Docker image)
 
 use axum::{
+    Router,
     body::Body,
     http::{Request, StatusCode},
-    Router,
 };
 use deadpool_postgres::{Config as PgConfig, Pool, Runtime};
 use http_body_util::BodyExt;
 use serde_json::Value as JsonValue;
 use testcontainers::{
+    ContainerAsync, GenericImage, ImageExt,
     core::{IntoContainerPort, WaitFor},
     runners::AsyncRunner,
-    ContainerAsync, GenericImage, ImageExt,
 };
 use tokio_postgres::NoTls;
 use tower::ServiceExt;
@@ -63,10 +63,7 @@ async fn start_db() -> (ContainerAsync<GenericImage>, Pool) {
         match pool.get().await {
             Ok(client) => {
                 // Verify extension is loaded
-                match client
-                    .query_one("SELECT fhir_ext_version()", &[])
-                    .await
-                {
+                match client.query_one("SELECT fhir_ext_version()", &[]).await {
                     Ok(_) => break,
                     Err(e) => {
                         if retries >= 30 {
@@ -290,21 +287,13 @@ async fn test_search() {
     let app = test_app(pool);
 
     // Create 3 patients
-    create_patient(
-        &app,
-        sample_patient("Zhang", "Wei", "male", "1985-03-10"),
-    )
-    .await;
+    create_patient(&app, sample_patient("Zhang", "Wei", "male", "1985-03-10")).await;
     create_patient(
         &app,
         sample_patient("Garcia", "Maria", "female", "1995-07-22"),
     )
     .await;
-    create_patient(
-        &app,
-        sample_patient("Zhang", "Li", "female", "2000-01-01"),
-    )
-    .await;
+    create_patient(&app, sample_patient("Zhang", "Li", "female", "2000-01-01")).await;
 
     // Search by name
     let (status, body) = request(&app, get("/fhir/Patient?name=Zhang")).await;
@@ -324,11 +313,7 @@ async fn test_search() {
     assert_eq!(body["total"], 2); // Garcia (1995) and Zhang Li (2000)
 
     // Combined search
-    let (status, body) = request(
-        &app,
-        get("/fhir/Patient?name=Zhang&gender=female"),
-    )
-    .await;
+    let (status, body) = request(&app, get("/fhir/Patient?name=Zhang&gender=female")).await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["total"], 1);
 }
@@ -390,11 +375,7 @@ async fn test_history() {
     assert_eq!(status, StatusCode::OK);
 
     // Get history
-    let (status, body) = request(
-        &app,
-        get(&format!("/fhir/Patient/{}/_history", id)),
-    )
-    .await;
+    let (status, body) = request(&app, get(&format!("/fhir/Patient/{}/_history", id))).await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["resourceType"], "Bundle");
     assert_eq!(body["type"], "history");
