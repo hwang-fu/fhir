@@ -222,6 +222,32 @@ Requests flow through these layers (outermost first):
 6. **Rate Limit** — token-bucket rate limiter (protected routes only)
 7. **Auth** — validates `X-API-Key` header (protected routes only)
 
+## Testing
+
+Integration tests use [testcontainers](https://github.com/testcontainers/testcontainers-rs) to spin up a real PostgreSQL instance with the PGRX extension, then exercise all HTTP endpoints through the Axum router.
+
+```bash
+# Build the test database image (first time only)
+make test-db-image
+
+# Run all tests
+make integration-test
+
+# Or directly
+cargo test -p fhir-server -- --test-threads=1
+```
+
+| Test | What it verifies |
+| ---- | ---------------- |
+| `test_auth` | Missing / wrong / correct API key |
+| `test_crud_lifecycle` | Create → Read → Update → Delete → 404 |
+| `test_health` | `GET /health` → 200 healthy |
+| `test_history` | Create + update → `/_history` with 2 versions |
+| `test_metadata` | `GET /metadata` → CapabilityStatement |
+| `test_pagination` | `_count` / `_offset` + pagination links |
+| `test_search` | Name, gender, birthdate filters + combined |
+| `test_validate` | Valid → 200, invalid → 400 |
+
 ## CI/CD
 
 GitHub Actions runs on every push and PR:
@@ -232,6 +258,7 @@ GitHub Actions runs on every push and PR:
 | **Build** | push + PR | `cargo build` (core + server) |
 | **Clippy** | PR only | `cargo clippy -- -D warnings` |
 | **Docker** | PR only | `docker compose build` |
+| **Integration** | PR only | Build test DB image + `cargo test` |
 
 ## License
 
