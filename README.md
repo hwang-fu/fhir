@@ -17,37 +17,15 @@ Features a PostgreSQL custom extension (PGRX) for storage, full CRUD + search + 
 
 ## Architecture
 
-```text
-┌──────────┐     ┌────────────────────────────────────────────────┐     ┌───────────────┐
-│  Client   │────▶│              server (Axum)                    │────▶│  Claude API    │
-│ (curl,    │◀────│  Middleware: Auth → Audit → ReqID → RateLimit │     │ (NL Search,   │
-│  Postman) │     │                                                │     │  Chat, Gen)   │
-└──────────┘     │  Routes:                                       │     └───────────────┘
-                  │   POST   /fhir/Patient          Create         │
-                  │   GET    /fhir/Patient/{id}     Read           │
-                  │   PUT    /fhir/Patient/{id}     Update         │
-                  │   DELETE /fhir/Patient/{id}     Delete         │
-                  │   GET    /fhir/Patient?...      Search         │
-                  │   GET    /fhir/Patient/{id}/_history  History  │
-                  │   POST   /fhir/Patient/$validate Validate     │
-                  │   POST   /fhir/Patient/$nl-search AI Search   │
-                  │   POST   /fhir/Patient/$generate  AI Generate │
-                  │   POST   /fhir/$chat             AI Chat      │
-                  │   GET    /metadata               Capability   │
-                  │   GET    /health                  Health       │
-                  │   GET    /metrics                 Prometheus   │
-                  └──────────────────┬───────────────────────────┘
-                                     │ SQL (extension functions)
-                                     ▼
-                  ┌──────────────────────────────────────────────┐
-                  │         PostgreSQL + fhir-pg-ext             │
-                  │  fhir_put · fhir_get · fhir_update           │
-                  │  fhir_delete · fhir_search · fhir_history    │
-                  │                                              │
-                  │  Tables: fhir_resources, fhir_history        │
-                  │  Indexes: GIN (JSONB), BTREE (gender, date)  │
-                  └──────────────────────────────────────────────┘
-```
+<p align="center">
+  <img src="diagrams/system-architecture.svg" alt="System Architecture" width="800"/>
+</p>
+
+### Database Schema
+
+<p align="center">
+  <img src="diagrams/db-schema.drawio.svg" alt="Database Schema" width="700"/>
+</p>
 
 ## Project Structure
 
@@ -156,6 +134,14 @@ Public endpoints (`/metadata`, `/health`, `/metrics`) do not require auth.
 | `PUT` | `/fhir/Patient/{id}` | Update patient | `200` + `ETag` |
 | `DELETE` | `/fhir/Patient/{id}` | Delete patient (soft) | `204` |
 
+<details>
+<summary>CRUD Request Flow Diagram</summary>
+
+<p align="center">
+  <img src="diagrams/crud-req-flow.drawio.svg" alt="CRUD Request Flow" width="800"/>
+</p>
+</details>
+
 ### Search & History
 
 | Method | Endpoint | Description |
@@ -189,6 +175,14 @@ Public endpoints (`/metadata`, `/health`, `/metrics`) do not require auth.
 | `POST` | `/fhir/Patient/$generate` | `{"count": 5}` | Generate synthetic patients (max 50) |
 | `POST` | `/fhir/$chat` | `{"message": "..."}` | AI chatbot with tool calling |
 
+<details>
+<summary>AI Chat Feature Diagram</summary>
+
+<p align="center">
+  <img src="diagrams/ai-chat-feature.drawio.svg" alt="AI Chat Feature" width="700"/>
+</p>
+</details>
+
 ### Observability
 
 | Method | Endpoint | Description |
@@ -221,6 +215,10 @@ Requests flow through these layers (outermost first):
 5. **Audit** — logs POST/PUT/DELETE mutations
 6. **Rate Limit** — token-bucket rate limiter (protected routes only)
 7. **Auth** — validates `X-API-Key` header (protected routes only)
+
+<p align="center">
+  <img src="diagrams/middleware-pipeline.drawio.svg" alt="Middleware Pipeline" width="600"/>
+</p>
 
 ## Testing
 
