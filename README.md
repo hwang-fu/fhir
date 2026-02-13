@@ -1,3 +1,5 @@
+**English** | [Deutsch](docs/README.de.md) | [中文](docs/README.zh.md)
+
 # FHIR R4 Patient Server
 
 A production-ready FHIR R4 server for the **Patient** resource, built with Rust.
